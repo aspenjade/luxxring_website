@@ -405,8 +405,8 @@
     <h2>Love can be something you wear.<br>Be the first to experience it.</h2>
     <p class="sub">The Luxx Ring</p>
     <p class="soon">Coming soon.</p>
-    <form class="signup" onsubmit="event.preventDefault(); document.getElementById('formNote').textContent='You\'re on the list — thank you.'; this.reset();">
-      <input type="email" required placeholder="Email address" aria-label="Email address">
+    <form class="signup" id="waitlistForm">
+      <input type="email" required placeholder="Email address" aria-label="Email address" id="emailInput">
       <button type="submit">Join</button>
     </form>
     <p class="form-note" id="formNote"></p>
@@ -428,6 +428,35 @@
   } else {
     els.forEach(el=>el.classList.add('in'));
   }
+
+  const waitlistForm = document.getElementById('waitlistForm');
+  const emailInput = document.getElementById('emailInput');
+  const formNote = document.getElementById('formNote');
+  waitlistForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    const submitBtn = waitlistForm.querySelector('button');
+    submitBtn.disabled = true;
+    formNote.textContent = 'Joining…';
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        formNote.textContent = "You're on the list — thank you.";
+        waitlistForm.reset();
+      } else {
+        formNote.textContent = data.error || 'Something went wrong. Please try again.';
+      }
+    } catch (err) {
+      formNote.textContent = 'Something went wrong. Please try again.';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 </script>
 
 </body>
